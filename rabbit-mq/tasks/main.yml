@@ -1,0 +1,74 @@
+---
+    - name: Install prerequisites
+      apt:
+        name:
+          - gnupg2
+          - wget
+          - software-properties-common
+          - apt-transport-https
+        state: present
+        update_cache: yes
+
+
+    - name: download deb
+      get_url:
+        url: "https://packages.erlang-solutions.com/erlang-solutions_1.0_all.deb"
+        dest: "/tmp/erlang-solutions_1.0_all.deb"
+
+    - name: dpkg install
+      shell: sudo dpkg -i /tmp/erlang-solutions_1.0_all.deb
+
+    - name: Install ESL Erlang package
+      apt:
+        name: 
+          - erlang
+          - erlang-nox
+        update_cache: yes
+        state: latest
+
+          #    - name: Add RabbitMQ APT repository
+          # apt_repository:
+          # repo: "deb http://www.rabbitmq.com/debian/ testing main"
+          # state: present
+
+          #  - name: Import RabbitMQ signing key
+          # apt_key:
+          # url: https://www.rabbitmq.com/rabbitmq-release-signing-key.asc
+          #state: present
+
+    - name: Install RabbitMQ server
+      apt:
+        name: rabbitmq-server
+        state: latest
+        update_cache: true
+
+    - name: Start and enable RabbitMQ service
+      service:
+        name: rabbitmq-server
+        state: started
+        enabled: yes
+
+
+    - name: enable rabbitmq plugins
+      rabbitmq_plugin:
+        names: rabbitmq_management
+        state: enabled
+      notify:
+      - restart rabbitmq
+
+    - name: add rabbitmq users admin
+      rabbitmq_user:
+        user: admin
+        password: superpassword
+        vhost: /
+        tags: administrator
+        configure_priv: .*
+        read_priv: .*
+        write_priv: .*
+        state: present
+
+
+    - name: remove default guest user
+      rabbitmq_user:
+        user: guest
+        state: absent

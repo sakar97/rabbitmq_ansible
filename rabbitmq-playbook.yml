@@ -1,0 +1,9 @@
+---
+- name: install
+  hosts: localhost
+  collections:
+    - community.rabbitmq
+  roles:
+    - base_setup
+    - rabbit-mq 
+  
